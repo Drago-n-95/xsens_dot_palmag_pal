@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <item name="oneLineCoreLayout" type="id" />
+    <item name="id_Space" type="id" />
+    <item name="core_space" type="id" />
+    <item name="az_space" type="id" />
+    <item name="av_space" type="id" />
+    <item name="sun_space" type="id" />
+    <item name="zrot_space" type="id" />
+    <item name="strat_space" type="id" />
+</resources>
