@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".views.MainActivity"
+    android:id="@+id/activity_main"
+    android:orientation="vertical">
+
+    <FrameLayout
+        android:id="@+id/container"
+        android:layout_width="413dp"
+        android:layout_height="676dp"
+        android:layout_below="@+id/row1_tabLayout"
+        android:layout_alignParentBottom="true"
+        android:layout_marginTop="0dp"
+        android:layout_marginBottom="0dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent">
+
+    </FrameLayout>
+
+    <com.google.android.material.tabs.TabLayout
+
+        android:id="@+id/row1_tabLayout"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        app:layout_constraintBottom_toTopOf="@+id/container"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent">
+
+        <com.google.android.material.tabs.TabItem
+            android:id="@+id/scan_tab"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Scan" />
+
+        <com.google.android.material.tabs.TabItem
+            android:id="@+id/core_tabtabtab"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Core" />
+
+        <com.google.android.material.tabs.TabItem
+            android:id="@+id/strat_tabtabtab"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Strat" />
+
+        <com.google.android.material.tabs.TabItem
+            android:id="@+id/table_angles_tabtabtab"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Table Angles" />
+
+        <com.google.android.material.tabs.TabItem
+            android:id="@+id/strat_angles_tabtabtab"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="STRAT ANGLES" />
+    </com.google.android.material.tabs.TabLayout>
+
+    <androidx.viewpager2.widget.ViewPager2
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:id="@+id/view_pager"
+        android:layout_below="@id/row1_tabLayout"/>
+
+
+</RelativeLayout>

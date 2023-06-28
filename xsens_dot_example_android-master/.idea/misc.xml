@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="DesignSurface">
+    <option name="filePathToZoomLevelMap">
+      <map>
+        <entry key="..\:/Users/Admin/Documents/Xsens App Working versions/WV_4/real_wv4/xsens_dot_example_android/xsens_dot_example_android-master/app/src/main/res/layout/activity_main.xml" value="0.20416666666666666" />
+        <entry key="..\:/Users/Admin/Documents/Xsens App Working versions/WV_4/real_wv4/xsens_dot_example_android/xsens_dot_example_android-master/app/src/main/res/layout/activity_strat_adapter.xml" value="0.19010416666666666" />
+        <entry key="..\:/Users/Admin/Documents/Xsens App Working versions/WV_4/real_wv4/xsens_dot_example_android/xsens_dot_example_android-master/app/src/main/res/layout/fragment_bedding.xml" value="0.20416666666666666" />
+        <entry key="..\:/Users/Admin/Documents/Xsens App Working versions/WV_4/real_wv4/xsens_dot_example_android/xsens_dot_example_android-master/app/src/main/res/layout/fragment_data.xml" value="0.20416666666666666" />
+        <entry key="..\:/Users/Admin/Documents/Xsens App Working versions/WV_4/real_wv4/xsens_dot_example_android/xsens_dot_example_android-master/app/src/main/res/layout/fragment_scan.xml" value="0.30416666666666664" />
+        <entry key="..\:/Users/Admin/Documents/Xsens App Working versions/WV_4/real_wv4/xsens_dot_example_android/xsens_dot_example_android-master/app/src/main/res/layout/fragment_table.xml" value="0.25" />
+        <entry key="..\:/Users/Admin/Documents/Xsens App Working versions/WV_4/real_wv4/xsens_dot_example_android/xsens_dot_example_android-master/app/src/main/res/layout/fragment_table_strat.xml" value="0.3205233033524121" />
+        <entry key="..\:/Users/Admin/Documents/Xsens App Working versions/WV_4/real_wv4/xsens_dot_example_android/xsens_dot_example_android-master/app/src/main/res/layout/fragment_test.xml" value="0.20416666666666666" />
+        <entry key="..\:/Users/Admin/Documents/Xsens App Working versions/WV_4/real_wv4/xsens_dot_example_android/xsens_dot_example_android-master/app/src/main/res/layout/item_data.xml" value="0.20416666666666666" />
+        <entry key="..\:/Users/Admin/Documents/Xsens App Working versions/WV_4/real_wv4/xsens_dot_example_android/xsens_dot_example_android-master/app/src/main/res/layout/item_sensor.xml" value="0.20416666666666666" />
+        <entry key="..\:/Users/Admin/Documents/Xsens App Working versions/WV_4/real_wv4/xsens_dot_example_android/xsens_dot_example_android-master/app/src/main/res/layout/one_core_layout.xml" value="0.20416666666666666" />
+        <entry key="..\:/Users/Admin/Documents/Xsens App Working versions/WV_4/real_wv4/xsens_dot_example_android/xsens_dot_example_android-master/app/src/main/res/layout/one_line_layout.xml" value="0.33" />
+        <entry key="..\:/Users/Admin/Documents/Xsens App Working versions/WV_4/real_wv4/xsens_dot_example_android/xsens_dot_example_android-master/app/src/main/res/layout/one_line_layout_strat.xml" value="0.33" />
+      </map>
+    </option>
+  </component>
+  <component name="ProjectRootManager" version="2" languageLevel="JDK_11" default="true" project-jdk-name="Embedded JDK" project-jdk-type="JavaSDK">
+    <output url="file://$PROJECT_DIR$/build/classes" />
+  </component>
+  <component name="ProjectType">
+    <option name="id" value="Android" />
+  </component>
+</project>
