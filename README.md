@@ -12,3 +12,4 @@ validity and compared to a traditional compass based orienter.
 <img src="https://github.com/Drago-n-95/xsens_dot_palmag_pal/assets/52564717/c7ed9e3b-bd4b-4001-92fc-8c9f079b7d0d" width=180 height=360 />
 
 <img src="https://github.com/Drago-n-95/xsens_dot_palmag_pal/assets/52564717/cd134167-7deb-4798-9897-4c8e5ccd37f9" width=360 height=250 />
+
