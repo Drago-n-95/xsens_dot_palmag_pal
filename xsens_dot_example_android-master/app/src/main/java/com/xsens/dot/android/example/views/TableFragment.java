@@ -10,6 +10,7 @@ import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -35,7 +36,7 @@ public class TableFragment extends Fragment implements CoreInfoAdapter.OnTabSele
 
 
     private static final int MODE_PRIVATE = 0;
-    private FragmentDataBinding mBinding;
+    //private FragmentDataBinding mBinding;
     private ArrayList<CoreInfoClass> CoreList;
     private TextView northText, eastText, zText, latText, lonText, CoreText, SubcoreText, ProjectNameText, NoteText, SunReadingText;
     public String northValue, eastValue, zValue, latValue, lonValue, coreValue, subcoreValue, projectValue, noteValue, sunValue;
@@ -45,7 +46,7 @@ public class TableFragment extends Fragment implements CoreInfoAdapter.OnTabSele
     private RecyclerView.LayoutManager layoutManager;
     DataBaseHelper dataBaseHelper;
     Button BtnGoBack;
-    List<CoreInfoClass> cores;
+    List<CoreInfoClass> cores, Cores;
     ConstraintLayout parentLayout;
     public TabLayout RowOneTabs;
     private TableFragment tableFragment;
@@ -82,39 +83,16 @@ public class TableFragment extends Fragment implements CoreInfoAdapter.OnTabSele
 
         recyclerView.setLayoutManager(layoutManager);
 
-        coreInfoList = XsensDotApplication.getCoreList();
-
         dataBaseHelper = new DataBaseHelper(getContext());
         cores = dataBaseHelper.getEverything();
-        XsensDotApplication.setCoreList(cores);
-
+        int lastPosition = dataBaseHelper.getEverything().size();
+        dataBaseHelper.close();
+        Log.i("POSITION RECYCLER", String.valueOf(lastPosition-1));
         mAdapter = new CoreInfoAdapter(cores, getContext(), tableFragment);
         recyclerView.setAdapter(mAdapter);
-
-        dataBaseHelper = new DataBaseHelper(getContext());
-        cores = dataBaseHelper.getEverything();
-        XsensDotApplication.setCoreList(cores);
-
+        recyclerView.scrollToPosition(lastPosition);
         parentLayout = thisView.findViewById(R.id.oneLineLayout);
         RowOneTabs = getActivity().findViewById(R.id.row1_tabLayout);
-
-/*
-        northValue = getArguments().getString("DataNorthKey");
-        eastValue = getArguments().getString("DataEastKey");
-        zValue = getArguments().getString("DataZKey");
-        latValue = getArguments().getString("DataLatKey");
-        lonValue = getArguments().getString("DataLonKey");
-
-        coreValue = getArguments().getString("DataCoreKey");
-        subcoreValue = getArguments().getString("DataSubcoreKey");
-        projectValue = getArguments().getString("DataProjectNameKey");
-        noteValue = getArguments().getString("DataNoteKey");
-        sunValue = getArguments().getString("DataSunReadingKey");
-
- */
-        //fillCoreInfoList();
-
-        //Toast.makeText(getContext(), "Count = " + coreInfoList.size() + coreInfoList.get(0).getCore(), Toast.LENGTH_SHORT).show();
 
         BtnGoBack = thisView.findViewById(R.id.btn_GoBack);
         BtnGoBack.setOnClickListener(new View.OnClickListener() {
@@ -122,47 +100,29 @@ public class TableFragment extends Fragment implements CoreInfoAdapter.OnTabSele
             public void onClick(View view) {
                 TabLayout.Tab coreTabMeasure = RowOneTabs.getTabAt(1);
                 coreTabMeasure.select();
-
             }
         });
 
         return thisView;
     }
 
-/*
-    private void fillCoreInfoList() {
-        CoreInfoClass core1 = new CoreInfoClass(0, northValue, eastValue, zValue, latValue, lonValue, coreValue, subcoreValue, noteValue, projectValue, sunValue);
+    @Override
+    public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
+        super.onViewCreated(view, savedInstanceState);
 
-        coreInfoList.addAll(Arrays.asList(new CoreInfoClass[] {core1}));
+
     }
-
- */
 
     @Override
     public void onResume() {
         super.onResume();
+        /**/
+        DataBaseHelper dBaseHelper = new DataBaseHelper(getContext());
+        Cores = dBaseHelper.getEverything();
+        dBaseHelper.close();
+        CoreInfoAdapter bAdapter = new CoreInfoAdapter(Cores, getContext(), tableFragment);
 
-        /*
-        northText = getView().findViewById(R.id.northData);
-        northText.setText(northValue);
-        eastText = getView().findViewById(R.id.eastData);
-        eastText.setText(eastValue);
-        zText = getView().findViewById(R.id.zData);
-        zText.setText(zValue);
-        latText = getView().findViewById(R.id.LatData);
-        latText.setText(latValue);
-        lonText = getView().findViewById(R.id.LonData);
-        lonText.setText(lonValue);
-
-        CoreText = getView().findViewById(R.id.core_text);
-        CoreText.setText(coreValue);
-
-        SubcoreText.setText(subcoreValue);
-        ProjectNameText.setText(projectValue);
-        NoteText.setText(noteValue);
-        SunReadingText.setText(sunValue);
-         */
-
+        recyclerView.setAdapter(bAdapter);
     }
 
     @Override

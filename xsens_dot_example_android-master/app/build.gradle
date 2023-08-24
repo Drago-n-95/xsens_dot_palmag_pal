@@ -54,7 +54,9 @@ dependencies {
 
     // Import Xsens DOT SDK
     implementation(name: 'XsensDotCore', ext: 'aar')
+
     implementation fileTree(dir: 'libs', include: ['*.jar'])
+    implementation files("libs/XsensDotSdkMfm.aar");
     //implementation(name: 'XsensDotSdkCore', ext: 'aar')
     //implementation(name: 'XsensDotSdkMfm', ext: 'aar')
     //implementation(name: 'XsensDotSdkOta', ext: 'aar')

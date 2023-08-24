@@ -45,16 +45,22 @@ import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
 import android.location.Location;
 import android.os.Bundle;
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.util.Log;
+import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ArrayAdapter;
+import android.widget.AutoCompleteTextView;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ProgressBar;
 import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
+import android.content.SharedPreferences;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -66,7 +72,7 @@ import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.material.tabs.TabLayout;
-import com.xsens.dot.android.example.BuildConfig;
+//import com.xsens.dot.android.example.BuildConfig;
 import com.xsens.dot.android.example.R;
 import com.xsens.dot.android.example.adapters.SendMessage;
 import com.xsens.dot.android.example.apps.XsensDotApplication;
@@ -96,15 +102,18 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Set;
 
 import static com.xsens.dot.android.example.views.MainActivity.FRAGMENT_TAG_DATA;
 import static com.xsens.dot.android.sdk.models.XsensDotDevice.LOG_STATE_ON;
 import static com.xsens.dot.android.sdk.models.XsensDotDevice.PLOT_STATE_ON;
 import static com.xsens.dot.android.sdk.models.XsensDotPayload.PAYLOAD_TYPE_COMPLETE_EULER;
 import static com.xsens.dot.android.sdk.models.XsensDotPayload.PAYLOAD_TYPE_COMPLETE_QUATERNION;
+import static com.xsens.dot.android.sdk.models.XsensDotPayload.PAYLOAD_TYPE_CUSTOM_MODE_2;
 
 /**
  * A fragment for presenting the data and storing to file.
@@ -148,6 +157,8 @@ public class DataFragment extends Fragment implements StreamingClickInterface, D
 
     private XsensDotSdk xsensDotSdk;
 
+    private ArrayList<HashMap<String, Object>> dataList;
+
     private FusedLocationProviderClient fusedLocationClient;
 
     private XsensDataCallBack mXsensDataCallBack = new XsensDataCallBack() {
@@ -165,15 +176,18 @@ public class DataFragment extends Fragment implements StreamingClickInterface, D
     View rootView;
     TextView northData, eastData, zData;
     TextView tvLatitude, tvLongitude, tvAltitude;
+    TextView correctedAzimuth;
     EditText CoreData, SubcoreData, ProjectNameData, NoteData, SunReadingData, TestCore;
+
     Button BtnAdd, BtnLoc, BtnNext;
     Double valLatitude, valLongitude, valAltitude;
     private TabLayout RowOneTabs;
     Spinner spinner;
     List<CoreInfoClass> CoreList;
     List<CoreInfoClass> dbLastEntry;
-
     SendMessage SM;
+
+    AutoCompleteTextView autoCompleteTextView;
 
     /**
      * Get the instance of DataFragment
@@ -188,7 +202,6 @@ public class DataFragment extends Fragment implements StreamingClickInterface, D
     public void onAttach(@NonNull Context context) {
         super.onAttach(context);
         bindViewModel();
-
     }
 
     @Nullable
@@ -216,37 +229,95 @@ public class DataFragment extends Fragment implements StreamingClickInterface, D
         NoteData = view.findViewById(R.id.note_text);
         SunReadingData = view.findViewById(R.id.txt_dip_dir);
         BtnAdd = view.findViewById(R.id.final_store);
-        spinner = view.findViewById(R.id.spinner_site);
+        //spinner = view.findViewById(R.id.spinner_site);
+
+        correctedAzimuth = view.findViewById(R.id.corrected_az);
+
+        //Autocomplete field with the sites is initialized in the next few lines
+        autoCompleteTextView = view.findViewById(R.id.autoCompleteTextView1);
+        autoCompleteTextView.clearComposingText();
+
+        List<String> newSuggestions = new ArrayList<>(); // Initialize with initial suggestions
+        ArrayAdapter<String> adapter = new ArrayAdapter<>(getContext(),
+                android.R.layout.simple_spinner_dropdown_item, newSuggestions);
+        autoCompleteTextView.setAdapter(adapter);
+
+        DataBaseHelper dbaseHelper = new DataBaseHelper(getContext().getApplicationContext());
+        int listLength = dbaseHelper.getEverything().size();
+        for (int i=0; i<listLength; i++){
+            newSuggestions.add(dbaseHelper.getEverything().get(i).getSite());
+        }
+        dbaseHelper.close();
+
+        // Create a Set to hold unique elements
+        Set<String> uniqueSet = new HashSet<>(newSuggestions);
+
+        // Convert the Set back to a List if needed
+        List<String> uniqueList = new ArrayList<>(uniqueSet);
+
+        Log.i("SUGGESTIONS", uniqueList.toString());
+        autoCompleteTextView.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+            }
+
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
+            }
+
+            @Override
+            public void afterTextChanged(Editable s) {
+                String currentInput = s.toString().trim();
+                if (!currentInput.isEmpty()) {
+                    // Filter newSuggestions to match the current input
+                    List<String> filteredSuggestions = new ArrayList<>();
+                    for (String suggestion : uniqueList) {
+                        if (suggestion.toLowerCase().contains(currentInput.toLowerCase())) {
+                            filteredSuggestions.add(suggestion);
+                        }
+                    }
+
+                    // Update the adapter with filtered suggestions
+                    adapter.clear();
+                    adapter.addAll(filteredSuggestions);
+                    adapter.notifyDataSetChanged();
+                }
+            }
+        });
+
 
         RowOneTabs = getActivity().findViewById(R.id.row1_tabLayout);
 
 
-
-        BtnNext = view.findViewById(R.id.ButtonNext);
-        BtnNext.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-
-                final BluetoothManager bluetoothManager = (BluetoothManager) bContext.getSystemService(Context.BLUETOOTH_SERVICE);
-                BluetoothAdapter mBluetoothAdapter = bluetoothManager.getAdapter();
-
-                BluetoothDevice device = mBluetoothAdapter.getRemoteDevice("D4:22:CD:00:3A:21");
-
-                XsensDotDevice xsDevice = new XsensDotDevice(bContext.getApplicationContext(), device, DataFragment.this);
-                xsDevice.setXsensDotMeasurementCallback((XsensDotMeasurementCallback) bContext);
-            }
-        });
-
         BtnAdd.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
+                // This part will stop the streaming of data and it will put a values for azimuth (0-360) in the textview correctedAzimuth
+                mSensorViewModel.setMeasurement(false);
+                mSensorViewModel.updateStreamingStatus(false);
+
+                double dataNorth = Double.parseDouble(northData.getText().toString());
+                double correctAzimuth = 270.0 - dataNorth;//*(-1)+360;
+
+                if (correctAzimuth > 360.0) {
+                    correctAzimuth = correctAzimuth - 360.0;
+                }
+
+                String correction360Azimuth_string =
+                        String.format("%.1f", correctAzimuth);
+                correctedAzimuth.setText(correction360Azimuth_string);
+                correctedAzimuth.setTextSize(20.0f);
+
+                /*
                 AppCompatActivity activity = (AppCompatActivity) view.getContext();
                 TableFragment tableFragment = new TableFragment();
                 BeddingFragment beddingFragment = new BeddingFragment();
+                 */
+
                 //Declaring the input variables from the user which are being stored in the global list
-                String DataNorth, DataEast, DataZ, DataLat, DataLon, Altitude;
+                String DataNorth, DataEast, DataZ, DataLat, DataLon, Altitude, Site;
                 String Core, Subcore, ProjectName, Note, SunReading;
-                DataNorth = northData.getText().toString();
+                DataNorth = correctedAzimuth.getText().toString();
                 DataEast = eastData.getText().toString();
                 DataZ = zData.getText().toString();
                 DataLat = tvLatitude.getText().toString();
@@ -257,6 +328,7 @@ public class DataFragment extends Fragment implements StreamingClickInterface, D
                 ProjectName = ProjectNameData.getText().toString();
                 Note = NoteData.getText().toString();
                 SunReading = SunReadingData.getText().toString();
+                Site = autoCompleteTextView.getText().toString();
 
                 //DataBase generation
                 DataBaseHelper dataBaseHelper = new DataBaseHelper(getContext().getApplicationContext());
@@ -274,7 +346,7 @@ public class DataFragment extends Fragment implements StreamingClickInterface, D
                 int nextId = XsensDotApplication.getIntId();
                 //CoreInfoClass newCore = new CoreInfoClass(nextId + 1, DataNorth, DataEast, DataZ, DataLat, DataLon, Core, Subcore, ProjectName, Note, SunReading, "", "", "","");
                 CoreInfoClass newCore = new CoreInfoClass(nextId, DataNorth, DataEast, DataZ,
-                        DataLat, DataLon, Core, Subcore, Note, ProjectName, SunReading, Altitude, "", "", "", dbDate, dbTime);
+                        DataLat, DataLon, Site, Core, Subcore, Note, ProjectName, SunReading, Altitude, "0.0", "0.0", "0", dbDate, dbTime);
 
                 //Add the data to the global list
                 CoreList.add(newCore);
@@ -285,14 +357,14 @@ public class DataFragment extends Fragment implements StreamingClickInterface, D
                 dataBaseHelper.addOne(newCore);
 
                 dataBaseHelper.close();
-                File source = new File("/data/data/com.xsens.dot.android.example/databases/tt7.db");
-                    File destination = new File("/storage/self/primary/Download/tt7.db");
+                File source = new File("/data/data/com.xsens.dot.android.example/databases/USA_table.db");
+                File destination = new File("/storage/self/primary/Android/data/com.xsens.dot.android.example/files/DataBase/USA_table.db");
 
-                    try {
-                        copy(source, destination);
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    }
+                try {
+                    copy(source, destination);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
 
                 TabLayout.Tab coreTabMeasure = RowOneTabs.getTabAt(2);
                 coreTabMeasure.select();
@@ -380,6 +452,18 @@ public class DataFragment extends Fragment implements StreamingClickInterface, D
             mSensorViewModel.setMeasurement(false);
             mSensorViewModel.updateStreamingStatus(false);
 
+            double dataNorth = Double.parseDouble(northData.getText().toString());
+            double correctAzimuth = 270.0 - dataNorth;//*(-1)+360;
+
+            if (correctAzimuth > 360.0) {
+                correctAzimuth = correctAzimuth - 360.0;
+            }
+
+            String correction360Azimuth_string =
+                    String.format("%.1f", correctAzimuth);
+            correctedAzimuth.setText(correction360Azimuth_string);
+
+
             XsensDotSyncManager.getInstance(this).stopSyncing();
 
             closeFiles();
@@ -396,29 +480,16 @@ public class DataFragment extends Fragment implements StreamingClickInterface, D
             }
 
             // Syncing precess is success, choose one measurement mode to start measuring.
-            mSensorViewModel.setMeasurementMode(PAYLOAD_TYPE_COMPLETE_EULER);
-            mSensorViewModel.setMeasurementMode(PAYLOAD_TYPE_COMPLETE_QUATERNION);
-
+            //mSensorViewModel.setMeasurementMode(PAYLOAD_TYPE_COMPLETE_EULER);
+            mSensorViewModel.setMeasurementMode(PAYLOAD_TYPE_CUSTOM_MODE_2);
             createFiles();
 
             mSensorViewModel.setMeasurement(true);
 
             final XsensDotDevice device = mSensorViewModel.getSensor("D4:22:CD:00:3A:21");
-            //device.resetHeading();
-            // Notify the current streaming status to MainActivity to refresh the menu.
+
             mSensorViewModel.updateStreamingStatus(true);
-
-
-            // Set first device to root.
-            //mSensorViewModel.setRootDevice(true);
-            //final ArrayList<XsensDotDevice> devices = mSensorViewModel.getAllSensors();
-            // Devices will disconnect during the syncing, and do reconnection automatically.
-            //XsensDotSyncManager.getInstance(this).startSyncing(devices, SYNCING_REQUEST_CODE);
-
-            //if (!mSyncingDialog.isShowing()) mSyncingDialog.show();
         }
-
-
     }
 
     @Override
@@ -429,11 +500,18 @@ public class DataFragment extends Fragment implements StreamingClickInterface, D
         if (getActivity() != null) getActivity().invalidateOptionsMenu();
 
         DataBaseHelper databsHelp = new DataBaseHelper(getContext().getApplicationContext());
+
         String lastCoreString = databsHelp.LastCoreEntry();
         Integer nextCoreInt = Integer.parseInt(lastCoreString) + 1;
         CoreData.setText(String.valueOf(nextCoreInt));
 
+        String lastSiteString = databsHelp.LastSiteEntry();
+        autoCompleteTextView.setText(String.valueOf(lastSiteString));
 
+        String projectName = databsHelp.LastProjectNameEntry();
+        Log.i("MY CORE", projectName);
+
+        ProjectNameData.setText(projectName);
     }
     /**
      * Initialize and observe view models.
@@ -472,6 +550,7 @@ public class DataFragment extends Fragment implements StreamingClickInterface, D
 
         int index = device.getCurrentFilterProfileIndex();
         ArrayList<FilterProfileInfo> list = device.getFilterProfileInfoList();
+        Log.i("Filter for magField", String.valueOf(index));
 
         for (FilterProfileInfo info : list) {
 
@@ -493,12 +572,11 @@ public class DataFragment extends Fragment implements StreamingClickInterface, D
 
         for (XsensDotDevice device : devices) {
 
-            String appVersion = BuildConfig.VERSION_NAME;
+            String appVersion = "";
             String fwVersion = device.getFirmwareVersion();
             String address = device.getAddress();
             String tag = device.getTag().isEmpty() ? device.getName() : device.getTag();
             String filename = "";
-
             if (getContext() != null) {
 
                 // Store log file in app internal folder.
@@ -521,7 +599,7 @@ public class DataFragment extends Fragment implements StreamingClickInterface, D
             XsensDotLogger logger = new XsensDotLogger(
                     getContext(),
                     XsensDotLogger.TYPE_CSV,
-                    PAYLOAD_TYPE_COMPLETE_EULER,
+                    PAYLOAD_TYPE_CUSTOM_MODE_2,
                     filename,
                     tag,
                     fwVersion,
@@ -635,8 +713,8 @@ public class DataFragment extends Fragment implements StreamingClickInterface, D
 
                         mSensorViewModel.setRootDevice(false);
                         // Syncing precess is success, choose one measurement mode to start measuring.
-                        mSensorViewModel.setMeasurementMode(PAYLOAD_TYPE_COMPLETE_EULER);
-                        mSensorViewModel.setMeasurementMode(PAYLOAD_TYPE_COMPLETE_QUATERNION);
+                        mSensorViewModel.setMeasurementMode(PAYLOAD_TYPE_CUSTOM_MODE_2);
+                        //mSensorViewModel.setMeasurementMode(PAYLOAD_TYPE_COMPLETE_QUATERNION);
 
                         createFiles();
 
@@ -649,8 +727,8 @@ public class DataFragment extends Fragment implements StreamingClickInterface, D
                             //mBinding.syncResult.setText(R.string.sync_result_success);
 
                             // Syncing precess is success, choose one measurement mode to start measuring.
-                            mSensorViewModel.setMeasurementMode(PAYLOAD_TYPE_COMPLETE_EULER);
-                            mSensorViewModel.setMeasurementMode(PAYLOAD_TYPE_COMPLETE_QUATERNION);
+                            mSensorViewModel.setMeasurementMode(PAYLOAD_TYPE_CUSTOM_MODE_2);
+                            //mSensorViewModel.setMeasurementMode(PAYLOAD_TYPE_COMPLETE_QUATERNION);
 
 
                             createFiles();
@@ -729,25 +807,42 @@ public class DataFragment extends Fragment implements StreamingClickInterface, D
                 }
             });
         }
-
         final float[] quater = data.getQuat();
         String quaterAngle =
                 String.format("%.5f", quater[0]);
-
         SunReadingData.setText(quaterAngle);
-
 */
+        //XsensDotData xsData = (XsensDotData) dataList.get(0).get("data");
+       // final double[] euler1 = xsData.getEuler();
+        //String eulerAnglesStr =
+        //        String.format("%.1f", euler1[2]);
+        //SunReadingData.setText(eulerAnglesStr);
+
         final double[] euler = data.getEuler();
+        final double[] magnetic = data.getMag();
+
+        //Permutation 6:
+        final double z = euler[0];
+        final double y = euler[1];
+        final double x = euler[2];
+
+        final double magX = magnetic[0];
+        final double magY = magnetic[1];
+        final double magZ = magnetic[2];
+
+        String magneticNorm = String.format("%.1f", Math.sqrt(magX*magX + magY*magY + magZ*magZ));
+        double azimuthAngle = Math.toDegrees(Math.atan2(z, Math.sqrt(x*x + y*y)));
+        //SunReadingData.setText(String.valueOf(azimuthAngle));
         String eulerAnglesStr_zero =
-                String.format("%.1f", euler[2]); //euler[2]*(-1)+180.0
+                String.format("%.1f", euler[2]);//((euler[2]+90)%360)
         String eulerAnglesStr_one =
                 String.format("%.1f", euler[1]+90.0);
         String eulerAnglesStr_two =
-                String.format("%.1f", euler[0]*(-1));
+                String.format("%.1f", euler[0]);
         northData.setText(eulerAnglesStr_zero);
         eastData.setText(eulerAnglesStr_one);
         zData.setText(eulerAnglesStr_two);
-
+        //SunReadingData.setText(magneticNorm);
     }
 
     @Override

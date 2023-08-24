@@ -61,7 +61,6 @@ public class TableStratFragment extends Fragment implements CoreInfoAdapter.OnTa
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-
     }
 
     @Override
@@ -79,7 +78,7 @@ public class TableStratFragment extends Fragment implements CoreInfoAdapter.OnTa
         //coreInfoList = XsensDotApplication.getCoreList();
         dataBaseHelper = new DataBaseHelper(getContext());
         cores = dataBaseHelper.getEverything();
-        XsensDotApplication.setCoreList(cores);
+        //XsensDotApplication.setCoreList(cores);
         //Log.i("Check strat", cores.get());
 
         //TableStratFragment tableStratFragment = new TableStratFragment();
@@ -94,31 +93,12 @@ public class TableStratFragment extends Fragment implements CoreInfoAdapter.OnTa
         //parentLayout = thisView.findViewById(R.id.oneLineLayout);
         RowOneTabs = getActivity().findViewById(R.id.row1_tabLayout);
 
-/*
-        northValue = getArguments().getString("DataNorthKey");
-        eastValue = getArguments().getString("DataEastKey");
-        zValue = getArguments().getString("DataZKey");
-        latValue = getArguments().getString("DataLatKey");
-        lonValue = getArguments().getString("DataLonKey");
-
-        coreValue = getArguments().getString("DataCoreKey");
-        subcoreValue = getArguments().getString("DataSubcoreKey");
-        projectValue = getArguments().getString("DataProjectNameKey");
-        noteValue = getArguments().getString("DataNoteKey");
-        sunValue = getArguments().getString("DataSunReadingKey");
-
- */
-        //fillCoreInfoList();
-
-        //Toast.makeText(getContext(), "Count = " + coreInfoList.size(), Toast.LENGTH_SHORT).show();
-
         BtnGoBack = thisView.findViewById(R.id.btn_GoBack);
         BtnGoBack.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 TabLayout.Tab coreTabMeasure = RowOneTabs.getTabAt(1);
                 coreTabMeasure.select();
-
             }
         });
 

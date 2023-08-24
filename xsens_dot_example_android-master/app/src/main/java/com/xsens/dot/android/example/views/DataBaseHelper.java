@@ -21,10 +21,10 @@ public class DataBaseHelper extends SQLiteOpenHelper{
     public static final String CORE_TABLE = "CORE_TABLE";
     public static final String COLLUMN_ID = "ID";
     public static final String COLLUMN_PROJ = "PROJ";
+    public static final String COLLUMN_SITE = "SITE";
     public static final String COLLUMN_CORE = "CORE";
     public static final String COLLUMN_SUBCORE = "SUBCORE";
     public static final String COLLUMN_NOTE = "NOTE";
-
 
     public static final String COLLUMN_AZ = "AZ";
     public static final String COLLUMN_AV = "AV";
@@ -43,7 +43,7 @@ public class DataBaseHelper extends SQLiteOpenHelper{
 
 
     public DataBaseHelper(@Nullable Context context) {
-        super(context, "tt7.db", null, 1);
+        super(context, "USA_table.db", null, 1);
     }
 
     //this is called the first time you try to access a database object
@@ -52,12 +52,13 @@ public class DataBaseHelper extends SQLiteOpenHelper{
         String col_id = COLLUMN_ID + " INTEGER PRIMARY KEY AUTOINCREMENT, ";
         String col_core = COLLUMN_CORE + ",";
         String col_proj = COLLUMN_PROJ + ",";
+        String col_site = COLLUMN_SITE + ",";
         String col_az = COLLUMN_AZ + " DOUBLE, ";
         String col_av = COLLUMN_AV + " DOUBLE, ";
         String col_z = COLLUMN_Z + " DOUBLE, ";
-        String col_lat = COLLUMN_LAT + " DOUBLE,";
+        String col_lat = COLLUMN_LAT + " DOUBLE, ";
         String col_lon = COLLUMN_LON + " DOUBLE, ";
-        String col_alt = COLLUMN_ALT + " DOUBLE";
+        String col_alt = COLLUMN_ALT + " DOUBLE, ";
         String col_sun = COLLUMN_SUN + ",";
         String col_subcore = COLLUMN_SUBCORE + ",";
         String col_note = COLLUMN_NOTE + ",";
@@ -67,7 +68,7 @@ public class DataBaseHelper extends SQLiteOpenHelper{
         String col_date = COLLUMN_DATE + ",";
         String col_time = COLLUMN_TIME ;
         String createTableStatement = "CREATE TABLE " + CORE_TABLE + " (" + col_id + col_az +
-                col_av + col_z + col_lat + col_lon + col_core + col_subcore + col_note +
+                col_av + col_z + col_lat + col_lon + col_site + col_core + col_subcore + col_note +
                 col_proj + col_sun + col_alt + col_dip_dir + col_dip +
                 col_strat + col_date + col_time + " )";
 
@@ -88,6 +89,7 @@ public class DataBaseHelper extends SQLiteOpenHelper{
         cv.put(COLLUMN_Z, coreInfoClass.getZdir());
         cv.put(COLLUMN_LAT, coreInfoClass.getLatitude());
         cv.put(COLLUMN_LON, coreInfoClass.getLongitude());
+        cv.put(COLLUMN_SITE, coreInfoClass.getSite());
         cv.put(COLLUMN_CORE, coreInfoClass.getCore());
         cv.put(COLLUMN_SUBCORE, coreInfoClass.getSubcore());
         cv.put(COLLUMN_NOTE, coreInfoClass.getNote());
@@ -133,6 +135,7 @@ public class DataBaseHelper extends SQLiteOpenHelper{
         values.put(COLLUMN_Z, coreInfoClass.getZdir());
         values.put(COLLUMN_LAT, coreInfoClass.getLatitude());
         values.put(COLLUMN_LON, coreInfoClass.getLongitude());
+        values.put(COLLUMN_SITE, coreInfoClass.getSite());
         values.put(COLLUMN_CORE, coreInfoClass.getCore());
         values.put(COLLUMN_SUBCORE, coreInfoClass.getSubcore());
         values.put(COLLUMN_NOTE, coreInfoClass.getNote());
@@ -163,20 +166,21 @@ public class DataBaseHelper extends SQLiteOpenHelper{
                 String zDat = cursor.getString(3);
                 String latDat = cursor.getString(4);
                 String lonDat = cursor.getString(5);
-                String core = cursor.getString(6);
-                String subcore = cursor.getString(7);
-                String note = cursor.getString(8);
-                String proj = cursor.getString(9);
-                String sun_read = cursor.getString(10);
-                String alt = cursor.getString(11);
-                String dipDir = cursor.getString(12);
-                String Dip = cursor.getString(13);
-                String Strat = cursor.getString(14);
-                String Date = cursor.getString(15);
-                String Time = cursor.getString(16);
+                String site = cursor.getString(6);
+                String core = cursor.getString(7);
+                String subcore = cursor.getString(8);
+                String note = cursor.getString(9);
+                String proj = cursor.getString(10);
+                String sun_read = cursor.getString(11);
+                String alt = cursor.getString(12);
+                String dipDir = cursor.getString(13);
+                String Dip = cursor.getString(14);
+                String Strat = cursor.getString(15);
+                String Date = cursor.getString(16);
+                String Time = cursor.getString(17);
 
                 CoreInfoClass cores = new CoreInfoClass(coreID, northDat, eastDat,
-                        zDat, latDat, lonDat, core, subcore, note, proj, sun_read, alt, dipDir, Dip, Strat, Date, Time);
+                        zDat, latDat, lonDat, site, core, subcore, note, proj, sun_read, alt, dipDir, Dip, Strat, Date, Time);
                 returnList.add(cores);
             }while(cursor.moveToNext());
         }
@@ -195,12 +199,40 @@ public class DataBaseHelper extends SQLiteOpenHelper{
        Cursor cursor = db.rawQuery(querying, null);
 
        if (cursor.moveToFirst()) {
-           String coreData = cursor.getString(6);
+           String coreData = cursor.getString(7);
            return coreData;
        }
        else {
            return "1";
        }
+    }
+
+    public String LastSubCoreEntry() {
+        String querying = "SELECT * FROM CORE_TABLE ORDER BY id DESC LIMIT 1";
+        SQLiteDatabase db = this.getReadableDatabase();
+        Cursor cursor = db.rawQuery(querying, null);
+
+        if (cursor.moveToFirst()) {
+            String coreData = cursor.getString(8);
+            return coreData;
+        }
+        else {
+            return "1";
+        }
+    }
+
+    public String LastSiteEntry() {
+        String querying = "SELECT * FROM CORE_TABLE ORDER BY id DESC LIMIT 1";
+        SQLiteDatabase db = this.getReadableDatabase();
+        Cursor cursor = db.rawQuery(querying, null);
+
+        if (cursor.moveToFirst()) {
+            String siteData = cursor.getString(6);
+            return siteData;
+        }
+        else {
+            return "Enter site";
+        }
     }
 
     public String LastProjectNameEntry() {
@@ -209,7 +241,7 @@ public class DataBaseHelper extends SQLiteOpenHelper{
         Cursor cursor = db.rawQuery(querying, null);
 
         if (cursor.moveToFirst()) {
-            String projectName = cursor.getString(9);
+            String projectName = cursor.getString(10);
             return projectName;
         }
         else {

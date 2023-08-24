@@ -32,12 +32,21 @@
 package com.xsens.dot.android.example.views;
 
 import android.Manifest;
+import android.annotation.SuppressLint;
+import android.app.AlertDialog;
+import android.app.ProgressDialog;
 import android.bluetooth.BluetoothAdapter;
+import android.bluetooth.BluetoothDevice;
+import android.bluetooth.BluetoothGatt;
+import android.bluetooth.BluetoothGattCharacteristic;
+import android.bluetooth.BluetoothGattService;
+import android.bluetooth.BluetoothManager;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.pm.PackageManager;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.provider.ContactsContract;
 import android.util.Log;
@@ -45,6 +54,7 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.FrameLayout;
 import android.widget.ListView;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
@@ -65,6 +75,7 @@ import com.google.android.material.tabs.TabItem;
 import com.google.android.material.tabs.TabLayout;
 import com.google.android.material.tabs.TabLayoutMediator;
 import com.xsens.dot.android.example.R;
+import com.xsens.dot.android.example.adapters.MfmAdapter;
 import com.xsens.dot.android.example.adapters.MyViewPagerAdapter;
 import com.xsens.dot.android.example.adapters.SendMessage;
 import com.xsens.dot.android.example.databinding.ActivityMainBinding;
@@ -76,11 +87,28 @@ import com.xsens.dot.android.example.viewmodels.SensorViewModel;
 import com.xsens.dot.android.sdk.events.XsensDotData;
 import com.xsens.dot.android.sdk.interfaces.XsensDotDeviceCallback;
 import com.xsens.dot.android.sdk.interfaces.XsensDotMeasurementCallback;
+import com.xsens.dot.android.sdk.mfm.XsensDotMfmManager;
+import com.xsens.dot.android.sdk.mfm.interfaces.XsensDotMfmCallback;
+import com.xsens.dot.android.sdk.mfm.models.XsensDotMfmResult;
 import com.xsens.dot.android.sdk.models.FilterProfileInfo;
 import com.xsens.dot.android.sdk.models.XsensDotDevice;
+import com.xsens.dot.android.sdk.utils.XsensDotDebugger;
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.nio.channels.FileChannel;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
+import java.util.UUID;
 
 /**
  * The main activity.
@@ -137,6 +165,12 @@ public class MainActivity extends AppCompatActivity implements XsensDotDeviceCal
     FragmentManager fragmentManager;
     FragmentTransaction fragmentTransaction;
 
+    private BluetoothGatt bluetoothGatt;
+    private BluetoothAdapter bluetoothAdapter;
+    private BluetoothDevice bluetoothDevice;
+    private XsensDotDebugger xsensDotDebugger;
+    private XsensDotMfmManager mXsensDotMfmManager;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -171,17 +205,6 @@ public class MainActivity extends AppCompatActivity implements XsensDotDeviceCal
         angleTableTab = (TabItem) findViewById(R.id.table_angles_tabtabtab);
         stratTableTab = (TabItem) findViewById(R.id.strat_angles_tabtabtab);
 
-        /*
-        //Make DataFragment into ScanFragment
-        fragment = new ScanFragment();
-        fragmentManager = getSupportFragmentManager();
-        fragmentTransaction = fragmentManager.beginTransaction();
-        fragmentTransaction.replace(R.id.container, fragment);
-        fragmentTransaction.setTransition(FragmentTransaction.TRANSIT_FRAGMENT_OPEN);
-        fragmentTransaction.commit();
-        DataFragment dataFragment = (DataFragment) getSupportFragmentManager().findFragmentById(R.id.data_fragment);
-
-         */
 
         RowOneTabs.addOnTabSelectedListener(new TabLayout.OnTabSelectedListener() {
             @Override
@@ -243,10 +266,38 @@ public class MainActivity extends AppCompatActivity implements XsensDotDeviceCal
                 super.onPageScrollStateChanged(state);
             }
         });
+/*
+        //File sourceDir = new File("/storage/self/primary/Android/data/com.xsens.dot.android/files/mfm");
+        //File destinationDir = new File("/storage/self/primary/Android/data/com.xsens.dot.android.example/files/mfm");
+        String sourceDir = "/storage/self/primary/Android/data/com.xsens.dot.android/files/mfm";
+        String destinationDir = "/storage/self/primary/Android/data/com.xsens.dot.android.example/files/mfm";
+        try {
+            copyDirectory(sourceDir, destinationDir);
+            System.out.println("Directory tree copied successfully!");
+        } catch (IOException e) {
+            e.printStackTrace();
+            System.out.println("Failed to copy directory tree.");
+        }
+
+ */
 
     }
+/*
+    public static void copyDirectory(String sourceDirectoryLocation, String destinationDirectoryLocation) throws IOException {
+        Files.walk(Paths.get(sourceDirectoryLocation))
+                .forEach(source -> {
+                    Path destination = Paths.get(destinationDirectoryLocation, source.toString().substring(sourceDirectoryLocation.length()));
+                    try {
+                        Files.copy(source, destination);
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                });
+    }
 
-    @Override
+ */
+
+        @Override
     public void sendData(String message) {
         String tag = "android.switcher:" + R.id.view_pager + ":" + 1;
         BeddingFragment f = (BeddingFragment) getSupportFragmentManager().findFragmentByTag(tag);
@@ -328,6 +379,7 @@ public class MainActivity extends AppCompatActivity implements XsensDotDeviceCal
         MenuItem streamingItem = menu.findItem(R.id.action_streaming);
         MenuItem measureItem = menu.findItem(R.id.action_measure);
         MenuItem recordItem = menu.findItem(R.id.action_record);
+        MenuItem mfmItem = menu.findItem(R.id.action_mfm);
 
         if (mIsScanning) scanItem.setTitle(getString(R.string.menu_stop_scan));
         else scanItem.setTitle(getString(R.string.menu_start_scan));
@@ -342,6 +394,7 @@ public class MainActivity extends AppCompatActivity implements XsensDotDeviceCal
             streamingItem.setVisible(false);
             measureItem.setVisible(true);
             recordItem.setVisible(true);
+            mfmItem.setVisible(true);
 
         } else if (sCurrentFragment.equals(FRAGMENT_TAG_DATA)) {
 
@@ -349,6 +402,7 @@ public class MainActivity extends AppCompatActivity implements XsensDotDeviceCal
             streamingItem.setVisible(true);
             measureItem.setVisible(true);
             recordItem.setVisible(true);
+            mfmItem.setVisible(true);
         }
 
         return super.onPrepareOptionsMenu(menu);
@@ -395,8 +449,62 @@ public class MainActivity extends AppCompatActivity implements XsensDotDeviceCal
                 break;
 
             case R.id.action_record:
+                /*
                 final XsensDotDevice device = mSensorViewModel.getSensor("D4:22:CD:00:3A:21");
                 device.resetHeading();
+                */
+                break;
+
+
+            case R.id.action_mfm:
+                //new MfmTask().execute();
+                /*
+                final BluetoothManager bluetoothManager = (BluetoothManager) MainActivity.this.getSystemService(Context.BLUETOOTH_SERVICE);
+                BluetoothAdapter mBluetoothAdapter = bluetoothManager.getAdapter();
+                // Initialize BluetoothAdapter (you should request Bluetooth permissions if needed)
+                bluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
+                if (bluetoothAdapter == null) {
+                    // Device does not support Bluetooth
+                    Log.i("Bluetooth Device: ", "Bluetooth device does not exist");
+                }
+
+                // Get the BluetoothDevice object by address (replace "deviceAddress" with the actual address of your target device)
+                bluetoothDevice = bluetoothAdapter.getRemoteDevice("D4:22:CD:00:3A:21");
+
+                // Connect to the device and get BluetoothGatt object using MyBluetoothGattCallback
+                bluetoothGatt = bluetoothDevice.connectGatt(this, false, new MyBluetoothGattCallback());
+
+                //bluetoothGatt.connect();
+                List<BluetoothGattService> services = bluetoothGatt.getServices();
+
+                Log.i("UUIDs", "UUIDs: " + Arrays.toString(bluetoothDevice.getUuids()) + ", Address: " + bluetoothDevice.getAddress());
+
+                UUID requiredServiceUuid = UUID.fromString("15172004-4947-11e9-8646-d663bd873d93");
+                //UUID requiredServiceUuid = UUID.fromString("ccb18b5e-c662-4ab9-8e7d-cf928152c95d");
+                //UUID requiredServiceUuid = UUID.fromString("4aadb872-3be2-44d4-8b9d-3de0518c75d7");
+
+                for (BluetoothGattService service : services) {
+                    UUID serviceUuid = service.getUuid();
+                    Log.i("services UUID", serviceUuid.toString());
+                    // Check if the service UUID matches the required MFM service UUID
+                    if (serviceUuid.equals(requiredServiceUuid)) {
+                        // MFM service is supported, perform further checks if needed
+                        // You can also check for specific characteristics within the service if required
+                        List<BluetoothGattCharacteristic> characteristics = service.getCharacteristics();
+
+                        break;
+                    }
+                }
+
+                //BluetoothDevice device1 = mBluetoothAdapter.getRemoteDevice("D4:22:CD:00:3A:21");
+
+                //XsensDotDevice xsDevice = new XsensDotDevice(MainActivity.this, bluetoothDevice, MainActivity.this);
+                final XsensDotDevice device = mSensorViewModel.getSensor("D4:22:CD:00:3A:21");
+
+                MfmTask mfmTask = new MfmTask(MainActivity.this, device);
+                mfmTask.execute();
+
+                 */
                 break;
         }
 

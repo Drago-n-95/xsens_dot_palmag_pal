@@ -4,10 +4,10 @@ import java.util.Date;
 
 public class CoreInfoClass {
     private int id;
-    private String North, East, Zdir, Latitude, Longitude, Core, Subcore, Note,
+    private String North, East, Zdir, Latitude, Longitude, Site, Core, Subcore, Note,
             Project, SunReading, Altitude, Dip_Dir, Dip, Strat, Date, Time;
 
-    public CoreInfoClass(int id, String north, String east, String zdir, String latitude, String longitude,
+    public CoreInfoClass(int id, String north, String east, String zdir, String latitude, String longitude, String site,
                          String core, String subcore, String note, String project, String sunReading, String altitude,
                          String dip_Dir, String dip, String strat, String date, String time
                          ) {
@@ -17,6 +17,7 @@ public class CoreInfoClass {
         Zdir = zdir;
         Latitude = latitude;
         Longitude = longitude;
+        Site = site;
         Core = core;
         Subcore = subcore;
         Note = note;
@@ -78,6 +79,14 @@ public class CoreInfoClass {
 
     public void setLongitude(String longitude) {
         Longitude = longitude;
+    }
+
+    public String getSite() {
+        return Site;
+    }
+
+    public void setSite(String site) {
+        Site = site;
     }
 
     public String getCore() {

@@ -27,4 +27,10 @@
         android:title="Reset"
         app:showAsAction="never" />
 
+    <item
+        android:id="@+id/action_mfm"
+        android:orderInCategory="4"
+        android:title="MFM"
+        app:showAsAction="never" />
+
 </menu>

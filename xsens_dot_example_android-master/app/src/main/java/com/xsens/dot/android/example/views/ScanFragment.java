@@ -31,10 +31,12 @@
 
 package com.xsens.dot.android.example.views;
 
+import android.Manifest;
 import android.app.AlertDialog;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.le.ScanSettings;
 import android.content.Context;
+import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -43,6 +45,7 @@ import android.view.ViewGroup;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.core.app.ActivityCompat;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.Observer;
 import androidx.recyclerview.widget.DefaultItemAnimator;
@@ -61,6 +64,7 @@ import com.xsens.dot.android.sdk.models.XsensDotDevice;
 import com.xsens.dot.android.sdk.utils.XsensDotScanner;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 
 import static com.xsens.dot.android.example.adapters.ScanAdapter.KEY_BATTERY_PERCENTAGE;
@@ -207,8 +211,6 @@ public class ScanFragment extends Fragment implements XsensDotScannerCallback, S
     @Override
     public void onXsensDotScanned(BluetoothDevice device, int rssi) {
 
-        //Log.i(TAG, "onXsensDotScanned() - Name: " + device.getName() + ", Address: " + device.getAddress());
-
         if (isAdded()) {
 
             // Use the mac address as UID to filter the same scan result.
@@ -270,6 +272,7 @@ public class ScanFragment extends Fragment implements XsensDotScannerCallback, S
                 mSensorViewModel.disconnectSensor(device.getAddress());
                 // Remove this sensor from device list.
                 mSensorViewModel.removeDevice(device.getAddress());
+
                 break;
 
             case CONN_STATE_CONNECTED:
@@ -286,6 +289,7 @@ public class ScanFragment extends Fragment implements XsensDotScannerCallback, S
                 mSensorViewModel.cancelReconnection(device.getAddress());
                 // Remove this sensor from device list.
                 mSensorViewModel.removeDevice(device.getAddress());
+
                 break;
         }
     }

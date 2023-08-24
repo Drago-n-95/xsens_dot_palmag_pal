@@ -1,5 +1,7 @@
 package com.xsens.dot.android.example.views;
 
+import static com.xsens.dot.android.example.views.MainActivity.FRAGMENT_TAG_DATA;
+
 import android.Manifest;
 import android.app.Activity;
 import android.content.Context;
@@ -15,6 +17,7 @@ import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.RecyclerView;
 
 import android.util.Log;
+import android.util.TypedValue;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -34,8 +37,13 @@ import com.xsens.dot.android.example.R;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.nio.channels.FileChannel;
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.ResultSet;
+import java.sql.Statement;
 import java.text.DecimalFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -66,8 +74,8 @@ public class BeddingFragment extends Fragment {
     List<CoreInfoClass> CoreList;
 
     TextView northData, eastData, zData, coreId;
-    TextView tvLatitude, tvLongitude, tvAltitude;
-    EditText dipDir, dip, strat, projectName;
+    TextView tvLatitude, tvLongitude, tvAltitude, siteName, ProjectNameData;
+    EditText dipDir, dip, strat;
     Button BtnAdd, BtnLoc, BtnNext;
     Double valLatitude, valLongitude, valAltitude;
     private TabLayout RowOneTabs;
@@ -143,19 +151,8 @@ public class BeddingFragment extends Fragment {
                 });
 
         coreId = view.findViewById(R.id.id_core);
-        projectName = view.findViewById(R.id.project_name1);
-        DataBaseHelper dbLast = new DataBaseHelper(getContext().getApplicationContext());
-        projectName.setText(dbLast.LastProjectNameEntry());
-/*
-        CoreInfoClass firstCore = new CoreInfoClass(0, "", "", "", "", "",
-                "", "", "", "", "", "", "", "",
-                "", "", "");
+        ProjectNameData = view.findViewById(R.id.project_name1);
 
-
-        dbLast.updateOne(firstCore);
-
- */
-        dbLast.close();
 
         //These are the coordinates of the phone
         tvLatitude = view.findViewById(R.id.txt_lat);
@@ -165,6 +162,8 @@ public class BeddingFragment extends Fragment {
         dipDir = view.findViewById(R.id.txt_dip_dir);
         dip = view.findViewById(R.id.txt_dip);
         strat = view.findViewById(R.id.txt_strat);
+
+        siteName = view.findViewById(R.id.site_name_label);
 
         RowOneTabs = getActivity().findViewById(R.id.row1_tabLayout);
 
@@ -193,46 +192,35 @@ public class BeddingFragment extends Fragment {
             public void onClick(View view) {
                 //Declaring the input variables from the user which are being stored in the global list
                 String DataNorth, DataEast, DataZ, DataLat, DataLon, Altitude;
-                String Core, Subcore, ProjectName, Note, SunReading;
+                String Core, Subcore, ProjectName, Site, Note, SunReading;
                 String DipDirection, Dip, Stratig;
 
                 //DataBase generation
                 DataBaseHelper dataBaseHelper = new DataBaseHelper(getContext().getApplicationContext());
                 //int lastId = XsensDotApplication.getIntId();
-                int lastId = 1; //dataBaseHelper.getLastId();
+
                 String project = dataBaseHelper.LastProjectNameEntry();
 
-/*
-                coreInfoList = XsensDotApplication.getCoreList();
-                DataNorth = coreInfoList.get(lastId).getNorth();
-                DataEast = coreInfoList.get(lastId).getEast();
-                DataZ = coreInfoList.get(lastId).getZdir();
-                DataLat = coreInfoList.get(lastId).getLatitude();
-                DataLon = coreInfoList.get(lastId).getLongitude();
-                Altitude = coreInfoList.get(lastId).getAltitude();
-                Core = coreInfoList.get(lastId).getCore();
-                Subcore = coreInfoList.get(lastId).getSubcore();
-                ProjectName = coreInfoList.get(lastId).getProject();
-                Note = coreInfoList.get(lastId).getNote();
-                SunReading = coreInfoList.get(lastId).getSunReading();
-*/
-                DataNorth = dataBaseHelper.getEverything().get(lastId).getNorth();
-                DataEast = dataBaseHelper.getEverything().get(lastId).getEast();
-                DataZ = dataBaseHelper.getEverything().get(lastId).getZdir();
-                DataLat = dataBaseHelper.getEverything().get(lastId).getLatitude();
-                DataLon = dataBaseHelper.getEverything().get(lastId).getLongitude();
-                Altitude = tvAltitude.getText().toString();//dataBaseHelper.getEverything().get(lastId).getAltitude();
-                Core = dataBaseHelper.getEverything().get(lastId).getCore();
-                Subcore = dataBaseHelper.getEverything().get(lastId).getSubcore();
-                //ProjectName = dataBaseHelper.getEverything().get(lastId).getProject();
-                Note = dataBaseHelper.getEverything().get(lastId).getNote();
-                SunReading = dataBaseHelper.getEverything().get(lastId).getSunReading();
 
+                int lID = dataBaseHelper.getLastId()-1;
+
+                DataNorth = dataBaseHelper.getEverything().get(lID).getNorth();
+                DataEast = dataBaseHelper.getEverything().get(lID).getEast();
+                DataZ = dataBaseHelper.getEverything().get(lID).getZdir();
+                DataLat = dataBaseHelper.getEverything().get(lID).getLatitude();
+                DataLon = dataBaseHelper.getEverything().get(lID).getLongitude();
+                Altitude = tvAltitude.getText().toString();//dataBaseHelper.getEverything().get(lID).getAltitude();
+                Core = dataBaseHelper.getEverything().get(lID).getCore();
+                Subcore = dataBaseHelper.getEverything().get(lID).getSubcore();
+                //ProjectName = dataBaseHelper.getEverything().get(lID).getProject();
+                Note = dataBaseHelper.getEverything().get(lID).getNote();
+                SunReading = dataBaseHelper.getEverything().get(lID).getSunReading();
+                Site = dataBaseHelper.getEverything().get(lID).getSite();
 
                 DipDirection = dipDir.getText().toString();
                 Dip = dip.getText().toString();
                 Stratig = strat.getText().toString();
-                Log.d("Look here Drago: ", project + "and last Core: ");
+                Log.d("Look here Drago: ", String.valueOf(dataBaseHelper.getLastId()));
 
                 //Creating a variable for the date and time
                 Date date = new Date();
@@ -242,28 +230,117 @@ public class BeddingFragment extends Fragment {
                 String dbTime = formattedDateTime.substring(11, 18);
 
                 //Create a list with the input data
-                CoreInfoClass newCore = new CoreInfoClass(lastId+1, DataNorth, DataEast, DataZ,
-                        DataLat, DataLon, Core, Subcore, Note, project, SunReading, Altitude, DipDirection, Dip, Stratig, dbDate, dbTime);
+                CoreInfoClass newCore = new CoreInfoClass(lID+1, DataNorth, DataEast, DataZ,
+                        DataLat, DataLon, Site, Core, Subcore, Note, project, SunReading, Altitude, DipDirection, Dip, Stratig, dbDate, dbTime);
 
 
                 dataBaseHelper.updateOne(newCore);
                 Log.d("Core: ", Core);
-                Log.d("ID: ", Integer.toString(lastId));
+                Log.d("ID: ", Integer.toString(lID));
 
-                File source = new File("/data/data/com.xsens.dot.android.example/databases/tt7.db");
-                File destination = new File("/storage/self/primary/Download/tt7.db");
+                File source = new File("/data/data/com.xsens.dot.android.example/databases/USA_table.db");
+                File destination = new File("/storage/self/primary/Android/data/com.xsens.dot.android.example/files/DataBase/USA_table.db");
 
                 try {
                     copy(source, destination);
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
+/*
+                String dbFilePath = "/storage/self/primary/Android/data/com.xsens.dot.android.example/files/DataBase/USA_table.db";
+                String csvFilePath = "/storage/self/primary/Android/data/com.xsens.dot.android.example/files/DataBase/USA_table.csv";
+
+                try {
+                    // Connect to the SQLite database
+                    Connection connection = DriverManager.getConnection("jdbc:sqlite:" + dbFilePath);
+
+                    // Create a SQL statement and execute query
+                    Statement statement = connection.createStatement();
+                    ResultSet resultSet = statement.executeQuery("SELECT * FROM CORE_TABLE");
+
+                    // Create a CSV file for writing
+                    FileWriter csvWriter = new FileWriter(csvFilePath);
+
+                    // Write header row if needed
+                    csvWriter.append("ID,PROJ,SITE,CORE,SUBCORE,NOTE,AZ,AV,Z,LAT,LON,ALT,SUN,DIP_DIR,DIP,STRAT,DATE,TIME\n");
+
+                    // Iterate through the result set and write to CSV
+                    while (resultSet.next()) {
+                        String id_csv = resultSet.getString("ID");
+                        String proj_csv = resultSet.getString("PROJ");
+                        String site_csv = resultSet.getString("SITE");
+                        String core_csv = resultSet.getString("CORE");
+                        String subcore_csv = resultSet.getString("SUBCORE");
+                        String note_csv = resultSet.getString("NOTE");
+                        String az_csv = resultSet.getString("AZ");
+                        String av_csv = resultSet.getString("AV");
+                        String z_csv = resultSet.getString("Z");
+                        String lat_csv = resultSet.getString("LAT");
+                        String lon_csv = resultSet.getString("LON");
+                        String alt_csv = resultSet.getString("ALT");
+                        String sun_csv = resultSet.getString("SUN");
+                        String dip_dir_csv = resultSet.getString("DIP_DIR");
+                        String dip_csv = resultSet.getString("DIP");
+                        String strat_csv = resultSet.getString("STRAT");
+                        String date_csv = resultSet.getString("DATE");
+                        String time_csv = resultSet.getString("TIME");
+
+                        // Write data to CSV
+                        csvWriter.append(id_csv)
+                                .append(",")
+                                .append(proj_csv)
+                                .append(",")
+                                .append(site_csv)
+                                .append(",")
+                                .append(core_csv)
+                                .append(",")
+                                .append(subcore_csv)
+                                .append(",")
+                                .append(note_csv)
+                                .append(",")
+                                .append(az_csv)
+                                .append(",")
+                                .append(av_csv)
+                                .append(",")
+                                .append(z_csv)
+                                .append(",")
+                                .append(lat_csv)
+                                .append(",")
+                                .append(lon_csv)
+                                .append(",")
+                                .append(alt_csv)
+                                .append(",")
+                                .append(sun_csv)
+                                .append(",")
+                                .append(dip_dir_csv)
+                                .append(",")
+                                .append(dip_csv)
+                                .append(",")
+                                .append(strat_csv)
+                                .append(",")
+                                .append(date_csv)
+                                .append(",")
+                                .append(time_csv)
+                                .append("\n");
+                    }
+
+                    // Close resources
+                    csvWriter.flush();
+                    csvWriter.close();
+                    resultSet.close();
+                    statement.close();
+                    connection.close();
+
+                    System.out.println("Conversion completed successfully.");
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+*/
                 TableFragment tableFragment = new TableFragment();
                 //getFragmentManager().beginTransaction().replace(R.id.container, tableFragment).addToBackStack(null).commit();
 /* */
                 TabLayout.Tab coreTabMeasure = RowOneTabs.getTabAt(3);
                 coreTabMeasure.select();
-
 
             }
         });
@@ -279,6 +356,25 @@ public class BeddingFragment extends Fragment {
     @Override
     public void onResume() {
         super.onResume();
+        // Notify main activity to refresh menu.
+        MainActivity.sCurrentFragment = FRAGMENT_TAG_DATA;
+        if (getActivity() != null) getActivity().invalidateOptionsMenu();
+        DataBaseHelper databsHelp = new DataBaseHelper(getContext().getApplicationContext());
+
+        String lastCoreString = databsHelp.LastCoreEntry();
+        String lastSubCoreString = databsHelp.LastSubCoreEntry();
+        String lastCoreAndSubcore = lastCoreString + lastSubCoreString;
+        coreId.setText(lastCoreAndSubcore);
+        coreId.setTextSize(TypedValue.COMPLEX_UNIT_SP, 32);
+
+
+        String lastSiteString = databsHelp.LastSiteEntry();
+        siteName.setText(String.valueOf(lastSiteString));
+
+        String projectName = databsHelp.LastProjectNameEntry();
+        Log.i("MY CORE", projectName);
+        ProjectNameData.setText(projectName);
+        ProjectNameData.setTextSize(TypedValue.COMPLEX_UNIT_SP, 28);
     }
 
 

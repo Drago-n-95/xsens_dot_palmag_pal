@@ -49,16 +49,10 @@ public class CoreInfoAdapter extends RecyclerView.Adapter<CoreInfoAdapter.MyView
         void onTabSelected(int position);
     }
 
-    private OnTabSelectedListener listener;
-
-
     public CoreInfoAdapter(List<CoreInfoClass> coreInfoList, Context context, TableFragment tableFragment) {
-
         this.coreInfoList = coreInfoList;
         this.context = context;
-        this.listener = listener;
         this.tableFragment = tableFragment;
-
     }
 
     @NonNull
@@ -72,26 +66,15 @@ public class CoreInfoAdapter extends RecyclerView.Adapter<CoreInfoAdapter.MyView
 
     @Override
     public void onBindViewHolder(@NonNull MyViewHolder holder, int position) {
+        String coreAndSubcore = coreInfoList.get(position).getCore() + coreInfoList.get(position).getSubcore();
+
         holder.id.setText(coreInfoList.get(position).toString());
-        holder.core.setText(coreInfoList.get(position).getCore());
+        holder.core.setText(coreAndSubcore);
         holder.az.setText(coreInfoList.get(position).getNorth());
         holder.av.setText(coreInfoList.get(position).getEast());
         holder.sun.setText(coreInfoList.get(position).getSunReading());
         holder.zrot.setText(coreInfoList.get(position).getZdir());
         holder.strat.setText(coreInfoList.get(position).getStrat());
-        Context context = holder.itemView.getContext();
-
-        String Id = coreInfoList.get(position).toString();
-        String Core = coreInfoList.get(position).getCore();
-        String Azim = coreInfoList.get(position).getNorth();
-        String Av = coreInfoList.get(position).getEast();
-        String Sun = coreInfoList.get(position).getSunReading();
-        String Zrot = coreInfoList.get(position).getZdir();
-        String Strat = coreInfoList.get(position).getStrat();
-
-        TabLayout mTabLayout = holder.RowOneTabs;
-
-
     }
 
     @Override
@@ -120,7 +103,6 @@ public class CoreInfoAdapter extends RecyclerView.Adapter<CoreInfoAdapter.MyView
             AppCompatActivity activity = (AppCompatActivity) view.getContext();
 
             RowOneTabs = activity.findViewById(R.id.row1_tabLayout);
-
 
         }
     }

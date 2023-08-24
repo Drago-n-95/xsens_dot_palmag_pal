@@ -61,17 +61,6 @@ public class StratInfoAdapter extends RecyclerView.Adapter<StratInfoAdapter.MyVi
         holder.lon.setText(coreInfoList.get(position).getLongitude());
         holder.bed.setText(coreInfoList.get(position).getStrat());
 
-        TabLayout mTabLayout = holder.RowOneTabs;
-
-        String Id = coreInfoList.get(position).toString();
-        String Core = coreInfoList.get(position).getCore();
-        String Azim = coreInfoList.get(position).getNorth();
-        String Av = coreInfoList.get(position).getEast();
-        String Sun = coreInfoList.get(position).getSunReading();
-        String Zrot = coreInfoList.get(position).getZdir();
-        String Strat = coreInfoList.get(position).getStrat();
-
-
     }
 
     @Override
@@ -91,13 +80,6 @@ public class StratInfoAdapter extends RecyclerView.Adapter<StratInfoAdapter.MyVi
 
             id = itemView.findViewById(R.id.tv_id_space);
             parentLayout = itemView.findViewById(R.id.one_line_layout_strat);
-
-            core = itemView.findViewById(R.id.tv_core_space);
-            az = itemView.findViewById(R.id.tv_az_space);
-            av = itemView.findViewById(R.id.tv_av_space);
-            sun = itemView.findViewById(R.id.tv_zrot_space);
-            zrot = itemView.findViewById(R.id.tv_zrot_space);
-            strat = itemView.findViewById(R.id.tv_strat_space);
 
             bed = itemView.findViewById(R.id.tv_bed);
             dip_dir = itemView.findViewById(R.id.tv_dip_dir);
