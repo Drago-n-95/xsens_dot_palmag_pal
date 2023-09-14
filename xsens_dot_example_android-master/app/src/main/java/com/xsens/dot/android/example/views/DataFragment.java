@@ -404,8 +404,8 @@ public class DataFragment extends Fragment implements StreamingClickInterface, D
                             double latit = location.getLatitude();
                             double longit = location.getLongitude();
                             double altit = location.getAltitude();
-                            tvLatitude.setText(new DecimalFormat("00.00").format(latit));
-                            tvLongitude.setText(new DecimalFormat("00.00").format(longit));
+                            tvLatitude.setText(new DecimalFormat("00.0000").format(latit));
+                            tvLongitude.setText(new DecimalFormat("00.0000").format(longit));
                             tvAltitude.setText(new DecimalFormat("000.00").format(altit));
 
                             valLatitude = location.getLatitude();
@@ -770,80 +770,40 @@ public class DataFragment extends Fragment implements StreamingClickInterface, D
 
     @Override
     public void onDataChanged(String address, XsensDotData data) {
-
         Log.i(TAG, "onDataChanged() - address = " + address);
-/*
-        boolean isExist = false;
 
-        for (HashMap<String, Object> map : mDataList) {
+        // Update UI elements on the main (UI) thread
+        getActivity().runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                updateFiles(address, data);
 
-            String _address = (String) map.get(KEY_ADDRESS);
-            if (_address.equals(address)) {
-                // If the data is exist, try to update it.
-                map.put(KEY_DATA, data);
-                isExist = true;
-                break;
+                final double[] euler = data.getEuler();
+                final double[] magnetic = data.getMag();
+
+                // Permutation 6:
+                final double z = euler[0];
+                final double y = euler[1];
+                final double x = euler[2];
+
+                final double magX = magnetic[0];
+                final double magY = magnetic[1];
+                final double magZ = magnetic[2];
+
+                String magneticNorm = String.format("%.1f", Math.sqrt(magX * magX + magY * magY + magZ * magZ));
+                double azimuthAngle = Math.toDegrees(Math.atan2(z, Math.sqrt(x * x + y * y)));
+                // SunReadingData.setText(String.valueOf(azimuthAngle));
+                String eulerAnglesStr_zero = String.format("%.1f", euler[2]);//((euler[2]+90)%360)
+                String eulerAnglesStr_one = String.format("%.1f", euler[1] + 90.0);
+                String eulerAnglesStr_two = String.format("%.1f", euler[0]);
+                northData.setText(eulerAnglesStr_zero);
+                eastData.setText(eulerAnglesStr_one);
+                zData.setText(eulerAnglesStr_two);
+                // SunReadingData.setText(magneticNorm);
             }
-        }
-
-        if (!isExist) {
-            // It's the first data of this sensor, create a new set and add it.
-            HashMap<String, Object> map = new HashMap<>();
-            map.put(KEY_ADDRESS, address);
-            map.put(KEY_TAG, mSensorViewModel.getTag(address));
-            map.put(KEY_DATA, data);
-            mDataList.add(map);
-        }
-*/
-        updateFiles(address, data);
-/*
-        if (getActivity() != null) {
-
-            getActivity().runOnUiThread(new Runnable() {
-                @Override
-                public void run() {
-                    // The data is coming from background thread, change to UI thread for updating.
-                    mDataAdapter.notifyDataSetChanged();
-                }
-            });
-        }
-        final float[] quater = data.getQuat();
-        String quaterAngle =
-                String.format("%.5f", quater[0]);
-        SunReadingData.setText(quaterAngle);
-*/
-        //XsensDotData xsData = (XsensDotData) dataList.get(0).get("data");
-       // final double[] euler1 = xsData.getEuler();
-        //String eulerAnglesStr =
-        //        String.format("%.1f", euler1[2]);
-        //SunReadingData.setText(eulerAnglesStr);
-
-        final double[] euler = data.getEuler();
-        final double[] magnetic = data.getMag();
-
-        //Permutation 6:
-        final double z = euler[0];
-        final double y = euler[1];
-        final double x = euler[2];
-
-        final double magX = magnetic[0];
-        final double magY = magnetic[1];
-        final double magZ = magnetic[2];
-
-        String magneticNorm = String.format("%.1f", Math.sqrt(magX*magX + magY*magY + magZ*magZ));
-        double azimuthAngle = Math.toDegrees(Math.atan2(z, Math.sqrt(x*x + y*y)));
-        //SunReadingData.setText(String.valueOf(azimuthAngle));
-        String eulerAnglesStr_zero =
-                String.format("%.1f", euler[2]);//((euler[2]+90)%360)
-        String eulerAnglesStr_one =
-                String.format("%.1f", euler[1]+90.0);
-        String eulerAnglesStr_two =
-                String.format("%.1f", euler[0]);
-        northData.setText(eulerAnglesStr_zero);
-        eastData.setText(eulerAnglesStr_one);
-        zData.setText(eulerAnglesStr_two);
-        //SunReadingData.setText(magneticNorm);
+        });
     }
+
 
     @Override
     public void onXsensDotHeadingChanged(String s, int i, int i1) {

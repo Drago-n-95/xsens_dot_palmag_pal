@@ -139,8 +139,8 @@ public class BeddingFragment extends Fragment {
                             double latit = location.getLatitude();
                             double longit = location.getLongitude();
                             double altit = location.getAltitude();
-                            tvLatitude.setText(new DecimalFormat("00.00").format(latit));
-                            tvLongitude.setText(new DecimalFormat("00.00").format(longit));
+                            tvLatitude.setText(new DecimalFormat("00.0000").format(latit));
+                            tvLongitude.setText(new DecimalFormat("00.0000").format(longit));
                             tvAltitude.setText(new DecimalFormat("000.00").format(altit));
 
                             valLatitude = location.getLatitude();
@@ -166,25 +166,6 @@ public class BeddingFragment extends Fragment {
         siteName = view.findViewById(R.id.site_name_label);
 
         RowOneTabs = getActivity().findViewById(R.id.row1_tabLayout);
-
-        //Log.d("Look here Drago: ", String.valueOf(lastId));
-        // coreD.getNorth().toString());
-        //Toast.makeText(mContext, "Look here: " + newCore.getDip(), Toast.LENGTH_LONG).show();
-
-        BtnNext = view.findViewById(R.id.ButtonNext);
-        BtnNext.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-
-                DataBaseHelper db = new DataBaseHelper(getContext().getApplicationContext());
-                int lID = XsensDotApplication.getIntId();
-                int someId = db.getEverything().size();
-                String cored = db.getEverything().get(lID).getCore();
-                Log.d("Core: ", String.valueOf(someId));
-
-                coreId.setText(cored);
-            }
-        });
 
         BtnAdd = view.findViewById(R.id.final_store);
         BtnAdd.setOnClickListener(new View.OnClickListener() {
@@ -338,7 +319,7 @@ public class BeddingFragment extends Fragment {
 */
                 TableFragment tableFragment = new TableFragment();
                 //getFragmentManager().beginTransaction().replace(R.id.container, tableFragment).addToBackStack(null).commit();
-/* */
+
                 TabLayout.Tab coreTabMeasure = RowOneTabs.getTabAt(3);
                 coreTabMeasure.select();
 

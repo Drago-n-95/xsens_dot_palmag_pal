@@ -141,19 +141,6 @@
         app:layout_constraintStart_toEndOf="@+id/txtLat"
         app:layout_constraintTop_toBottomOf="@+id/textView4" />
 
-    <Button
-        android:id="@+id/ButtonNext"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginStart="24dp"
-        android:layout_marginEnd="44dp"
-        android:text="NextPage"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="1.0"
-        app:layout_constraintStart_toEndOf="@+id/txtLng"
-        app:layout_constraintTop_toBottomOf="@+id/final_store"
-        app:layout_constraintVertical_bias="0.218" />
 
     <TextView
         android:id="@+id/northData"
